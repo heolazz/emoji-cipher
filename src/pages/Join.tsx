@@ -21,7 +21,9 @@ export default function Join() {
 
         localStorage.setItem('emoji_player_id', playerId);
 
-        const channel = supabase.channel(`room_${roomCode}`)
+        const channel = supabase.channel(`room_${roomCode}`, {
+            config: { broadcast: { self: true } }
+        })
             .on('broadcast', { event: 'game_start' }, () => {
                 startGame();
             })
@@ -42,33 +44,31 @@ export default function Join() {
                         streak: payload.streak
                     });
                 }
-            })
-            .subscribe();
+            });
+
+        channel.subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+                await channel.send({
+                    type: 'broadcast',
+                    event: 'player_join',
+                    payload: { id: playerId, name }
+                });
+            }
+        });
 
         channelRef.current = channel;
 
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [isJoined, roomCode, startGame, playerId]);
+    }, [isJoined, roomCode, startGame, playerId, name]);
 
     const handleJoin = async () => {
         if (code.length === 4 && name.trim()) {
             const room = code.toUpperCase();
             setRoomCode(room);
             setRole('PLAYER');
-
-            const channel = supabase.channel(`room_${room}`);
-            channel.subscribe(async (status) => {
-                if (status === 'SUBSCRIBED') {
-                    await channel.send({
-                        type: 'broadcast',
-                        event: 'player_join',
-                        payload: { id: playerId, name }
-                    });
-                    setIsJoined(true);
-                }
-            });
+            setIsJoined(true);
         } else {
             alert('Isi Nama dan Kode Room dengan benar!');
         }
