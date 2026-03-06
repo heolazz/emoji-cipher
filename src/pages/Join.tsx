@@ -11,8 +11,9 @@ export default function Join() {
     const [hasAnswered, setHasAnswered] = useState(false);
     const [isLocked, setIsLocked] = useState(false);
     const [result, setResult] = useState<{ isCorrect: boolean, points: number, streak: number } | null>(null);
+    const [finalData, setFinalData] = useState<{ rank: number, score: number } | null>(null);
     const [playerId] = useState(() => localStorage.getItem('emoji_player_id') || Math.random().toString(36).substring(2, 9));
-    const { roomCode, setRoomCode, setRole, status, startGame } = useGameStore();
+    const { roomCode, setRoomCode, setRole, status, startGame, endGame } = useGameStore();
 
     const channelRef = useRef<any>(null);
 
@@ -44,6 +45,16 @@ export default function Join() {
                         streak: payload.streak
                     });
                 }
+            })
+            .on('broadcast', { event: 'game_end' }, ({ payload }) => {
+                endGame();
+                const myLeaderboardEntry = payload.leaderboard?.find((p: any) => p.id === playerId);
+                if (myLeaderboardEntry) {
+                    setFinalData({
+                        rank: myLeaderboardEntry.rank,
+                        score: myLeaderboardEntry.score
+                    });
+                }
             });
 
         channel.subscribe(async (status) => {
@@ -61,7 +72,7 @@ export default function Join() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [isJoined, roomCode, startGame, playerId, name]);
+    }, [isJoined, roomCode, startGame, playerId, name, endGame]);
 
     const handleJoin = async () => {
         if (code.length === 4 && name.trim()) {
@@ -93,12 +104,49 @@ export default function Join() {
                     initial={{ y: 50, scale: 0.8, opacity: 0 }}
                     animate={{ y: 0, scale: 1, opacity: 1 }}
                     transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                    className={`rounded-[3rem] p-8 shadow-2xl max-w-sm w-full border-b-8 transition-colors duration-500 ${result
-                        ? (result.isCorrect ? 'bg-green-500 border-green-700 text-white' : 'bg-red-500 border-red-700 text-white')
-                        : 'bg-white border-gray-200 text-black'
+                    className={`rounded-[3rem] p-8 shadow-2xl max-w-sm w-full border-b-8 transition-colors duration-500 flex flex-col items-center justify-center min-h-[400px] ${status === 'FINISHED'
+                            ? 'bg-[#1f2937] border-gray-900 text-white'
+                            : result
+                                ? (result.isCorrect ? 'bg-green-500 border-green-700 text-white' : 'bg-red-500 border-red-700 text-white')
+                                : 'bg-white border-gray-200 text-black'
                         }`}
                 >
-                    {status === 'PLAYING' ? (
+                    {status === 'FINISHED' ? (
+                        <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: 0.5, type: "spring" }}
+                            className="w-full flex flex-col items-center justify-center text-center"
+                        >
+                            <h2 className="text-4xl font-black mb-6 uppercase tracking-widest text-[#ffca28] drop-shadow-lg">
+                                GAME OVER!
+                            </h2>
+
+                            <motion.div
+                                animate={{ y: [-10, 10, -10] }}
+                                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                                className="text-[6rem] mb-6 drop-shadow-2xl"
+                            >
+                                {finalData?.rank === 1 ? '👑' : finalData?.rank && finalData.rank <= 3 ? '🎉' : '👍'}
+                            </motion.div>
+
+                            {finalData && (
+                                <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 w-full text-center mb-6 border border-white/20">
+                                    <h3 className="text-xl font-bold uppercase mb-2 opacity-80">Final Rank</h3>
+                                    <div className="text-5xl font-black mb-4">
+                                        #{finalData.rank}
+                                    </div>
+                                    <div className="bg-black/30 rounded-full px-4 py-2 inline-block">
+                                        <span className="font-bold text-[#ffca28]">{finalData.score} pts</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            <p className="text-sm font-bold opacity-60 uppercase tracking-widest mt-4">
+                                Look at the main screen!
+                            </p>
+                        </motion.div>
+                    ) : status === 'PLAYING' ? (
                         <div className="flex flex-col items-center">
                             {/* Result Screen (Kahoot Style) */}
                             {result ? (

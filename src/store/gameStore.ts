@@ -34,6 +34,7 @@ interface GameState {
     revealAnswer: () => void;
     setTimeLeft: (time: number) => void; // Added setTimeLeft action
     validateAnswer: (answer: string) => boolean;
+    endGame: () => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -80,5 +81,6 @@ export const useGameStore = create<GameState>((set, get) => ({
         const state = get();
         const currentQuiz = state.questions[state.currentQuestionIndex];
         return currentQuiz.answer.trim().toLowerCase() === answer.trim().toLowerCase();
-    }
+    },
+    endGame: () => set({ status: 'FINISHED' })
 }))

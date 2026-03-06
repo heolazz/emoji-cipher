@@ -155,6 +155,20 @@ export default function Host() {
                     });
                 }
             } else {
+                useGameStore.getState().endGame();
+                if (channelRef.current) {
+                    await channelRef.current.send({
+                        type: 'broadcast',
+                        event: 'game_end',
+                        payload: {
+                            leaderboard: sortedPlayers.map((p, index) => ({
+                                id: p.id,
+                                rank: index + 1,
+                                score: p.score
+                            }))
+                        }
+                    });
+                }
                 navigate('/podium');
             }
         };
