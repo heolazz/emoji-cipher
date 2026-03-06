@@ -88,13 +88,14 @@ export default function Join() {
 
     if (isJoined) {
         return (
-            <div className="min-h-screen bg-[#6a5ae0] flex flex-col items-center justify-center p-6 font-sans">
+            <div className="min-h-screen bg-[#6a5ae0] bg-polka flex flex-col items-center justify-center p-6 font-sans">
                 <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
+                    initial={{ y: 50, scale: 0.8, opacity: 0 }}
+                    animate={{ y: 0, scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 20 }}
                     className={`rounded-[3rem] p-8 shadow-2xl max-w-sm w-full border-b-8 transition-colors duration-500 ${result
-                            ? (result.isCorrect ? 'bg-green-500 border-green-700 text-white' : 'bg-red-500 border-red-700 text-white')
-                            : 'bg-white border-gray-200 text-black'
+                        ? (result.isCorrect ? 'bg-green-500 border-green-700 text-white' : 'bg-red-500 border-red-700 text-white')
+                        : 'bg-white border-gray-200 text-black'
                         }`}
                 >
                     {status === 'PLAYING' ? (
@@ -230,10 +231,11 @@ export default function Join() {
     }
 
     return (
-        <div className="min-h-screen bg-[#6a5ae0] flex flex-col items-center justify-center p-6 font-sans">
+        <div className="min-h-screen bg-[#6a5ae0] bg-polka flex flex-col items-center justify-center p-6 font-sans">
             <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
+                initial={{ y: 50, scale: 0.8, opacity: 0 }}
+                animate={{ y: 0, scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 20 }}
                 className="bg-white rounded-[3rem] p-10 shadow-2xl max-w-sm w-full border-b-8 border-gray-200"
             >
                 <div className="text-center mb-10">
