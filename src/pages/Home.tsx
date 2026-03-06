@@ -5,7 +5,7 @@ export default function Home() {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen bg-[#6a5ae0] flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
+        <div className="min-h-screen bg-[#6a5ae0] bg-polka flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
             {/* Animated Background Emojis */}
             <motion.div
                 animate={{ y: [0, -20, 0], rotate: [0, 10, 0] }}
@@ -30,8 +30,9 @@ export default function Home() {
             </motion.div>
 
             <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
+                initial={{ scale: 0.8, y: 50, opacity: 0 }}
+                animate={{ scale: 1, y: 0, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 20 }}
                 className="bg-white rounded-[3.5rem] p-12 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] max-w-md w-full text-center border-b-[10px] border-gray-200 relative z-10"
             >
                 <div className="mb-10">
