@@ -25,8 +25,16 @@ export default function Host() {
     useEffect(() => {
         if (!roomCode || !isVerified) return;
 
-        const channel = supabase.channel(`room_${roomCode}`)
+        // Cleanup previous channel if it exists
+        if (channelRef.current) {
+            supabase.removeChannel(channelRef.current);
+        }
+
+        const channel = supabase.channel(`room_${roomCode}`, {
+            config: { broadcast: { self: true } }
+        })
             .on('broadcast', { event: 'player_join' }, ({ payload }) => {
+                console.log('Player joining:', payload);
                 useGameStore.getState().addPlayer(payload.id, payload.name);
             })
             .on('broadcast', { event: 'submit_answer' }, ({ payload }) => {
@@ -34,14 +42,11 @@ export default function Host() {
                 if (state.subStatus !== 'QUESTION') return;
 
                 const isCorrect = state.validateAnswer(payload.answer);
-
-                // Kahoot Logic: Base 500 + (seconds left * 25)
                 const speedBonus = state.timeLeft * 25;
                 const totalPoints = isCorrect ? (500 + speedBonus) : 0;
 
                 state.updatePlayerScore(payload.id, totalPoints);
 
-                // Broadcast individual result back to the player
                 if (channelRef.current) {
                     const player = useGameStore.getState().players[payload.id];
                     channelRef.current.send({
@@ -66,7 +71,9 @@ export default function Host() {
                     });
                 }
             })
-            .subscribe();
+            .subscribe((status) => {
+                console.log('Host channel status:', status);
+            });
 
         channelRef.current = channel;
 
