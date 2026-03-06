@@ -15,73 +15,76 @@ export default function Join() {
     const [result, setResult] = useState<{ isCorrect: boolean, points: number, streak: number } | null>(null);
     const [finalData, setFinalData] = useState<{ rank: number, score: number } | null>(null);
     const [playerId] = useState(() => localStorage.getItem('emoji_player_id') || Math.random().toString(36).substring(2, 9));
-    const { roomCode, setRoomCode, setRole, status, startGame, endGame } = useGameStore();
+    const { setRoomCode, setRole, status } = useGameStore();
 
     const channelRef = useRef<any>(null);
 
     useEffect(() => {
-        if (!isJoined || !roomCode) return;
-
-        localStorage.setItem('emoji_player_id', playerId);
-
-        const channel = supabase.channel(`room_${roomCode}`, {
-            config: { broadcast: { self: true } }
-        })
-            .on('broadcast', { event: 'game_start' }, () => {
-                startGame();
-            })
-            .on('broadcast', { event: 'next_question' }, () => {
-                setHasAnswered(false);
-                setIsLocked(false);
-                setAnswer('');
-                setResult(null);
-            })
-            .on('broadcast', { event: 'timeout' }, () => {
-                setIsLocked(true);
-            })
-            .on('broadcast', { event: 'answer_result' }, ({ payload }) => {
-                if (payload.playerId === playerId) {
-                    setResult({
-                        isCorrect: payload.isCorrect,
-                        points: payload.points,
-                        streak: payload.streak
-                    });
-                }
-            })
-            .on('broadcast', { event: 'game_end' }, ({ payload }) => {
-                endGame();
-                const myLeaderboardEntry = payload.leaderboard?.find((p: any) => p.id === playerId);
-                if (myLeaderboardEntry) {
-                    setFinalData({
-                        rank: myLeaderboardEntry.rank,
-                        score: myLeaderboardEntry.score
-                    });
-                }
-            });
-
-        channel.subscribe(async (status) => {
-            if (status === 'SUBSCRIBED') {
-                await channel.send({
-                    type: 'broadcast',
-                    event: 'player_join',
-                    payload: { id: playerId, name }
-                });
-            }
-        });
-
-        channelRef.current = channel;
-
         return () => {
-            supabase.removeChannel(channel);
+            if (channelRef.current) {
+                supabase.removeChannel(channelRef.current);
+            }
         };
-    }, [isJoined, roomCode, startGame, playerId, name, endGame]);
+    }, []);
 
     const handleJoin = async () => {
         if (code.length === 4 && name.trim()) {
             const room = code.toUpperCase();
             setRoomCode(room);
             setRole('PLAYER');
-            setIsJoined(true);
+            localStorage.setItem('emoji_player_id', playerId);
+
+            if (channelRef.current) {
+                supabase.removeChannel(channelRef.current);
+            }
+
+            const channel = supabase.channel(`room_${room}`, {
+                config: { broadcast: { self: true } }
+            })
+                .on('broadcast', { event: 'game_start' }, () => {
+                    useGameStore.getState().startGame();
+                })
+                .on('broadcast', { event: 'next_question' }, () => {
+                    setHasAnswered(false);
+                    setIsLocked(false);
+                    setAnswer('');
+                    setResult(null);
+                })
+                .on('broadcast', { event: 'timeout' }, () => {
+                    setIsLocked(true);
+                })
+                .on('broadcast', { event: 'answer_result' }, ({ payload }) => {
+                    if (payload.playerId === playerId) {
+                        setResult({
+                            isCorrect: payload.isCorrect,
+                            points: payload.points,
+                            streak: payload.streak
+                        });
+                    }
+                })
+                .on('broadcast', { event: 'game_end' }, ({ payload }) => {
+                    useGameStore.getState().endGame();
+                    const myLeaderboardEntry = payload.leaderboard?.find((p: any) => p.id === playerId);
+                    if (myLeaderboardEntry) {
+                        setFinalData({
+                            rank: myLeaderboardEntry.rank,
+                            score: myLeaderboardEntry.score
+                        });
+                    }
+                });
+
+            channel.subscribe(async (status) => {
+                if (status === 'SUBSCRIBED') {
+                    await channel.send({
+                        type: 'broadcast',
+                        event: 'player_join',
+                        payload: { id: playerId, name }
+                    });
+                    setIsJoined(true);
+                }
+            });
+
+            channelRef.current = channel;
         } else {
             alert('Isi Nama dan Kode Room dengan benar!');
         }
@@ -90,11 +93,11 @@ export default function Join() {
     const handleSubmitAnswer = async () => {
         if (!answer.trim() || !channelRef.current) return;
 
-        const playerId = localStorage.getItem('emoji_player_id');
+        const pId = localStorage.getItem('emoji_player_id');
         await channelRef.current.send({
             type: 'broadcast',
             event: 'submit_answer',
-            payload: { id: playerId, name, answer }
+            payload: { id: pId, name, answer }
         });
         setHasAnswered(true);
     };
@@ -287,7 +290,7 @@ export default function Join() {
                 onClick={() => navigate('/')}
                 className="absolute top-6 left-6 md:top-8 md:left-8 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-5 py-2 md:px-6 md:py-3 rounded-full font-bold flex items-center gap-2 transition-all active:scale-95 z-20 shadow-lg text-sm md:text-base"
             >
-                ⬅️ BACK
+                BACK
             </button>
             <motion.div
                 initial={{ y: 50, scale: 0.8, opacity: 0 }}
