@@ -9,6 +9,7 @@ export default function Join() {
     const [isJoined, setIsJoined] = useState(false);
     const [answer, setAnswer] = useState('');
     const [hasAnswered, setHasAnswered] = useState(false);
+    const [isLocked, setIsLocked] = useState(false);
     const { roomCode, setRoomCode, setRole, status, startGame } = useGameStore();
 
     const channelRef = useRef<any>(null);
@@ -22,7 +23,11 @@ export default function Join() {
             })
             .on('broadcast', { event: 'next_question' }, () => {
                 setHasAnswered(false);
+                setIsLocked(false);
                 setAnswer('');
+            })
+            .on('broadcast', { event: 'timeout' }, () => {
+                setIsLocked(true);
             })
             .subscribe();
 
@@ -86,7 +91,7 @@ export default function Join() {
                                 YOUR ANSWER
                             </div>
 
-                            {!hasAnswered ? (
+                            {!hasAnswered && !isLocked ? (
                                 <div className="w-full flex flex-col gap-6">
                                     <input
                                         type="text"
@@ -106,13 +111,17 @@ export default function Join() {
                             ) : (
                                 <div className="text-center py-10">
                                     <motion.div
-                                        animate={{ y: [0, -10, 0] }}
-                                        transition={{ duration: 2, repeat: Infinity }}
+                                        animate={isLocked && !hasAnswered ? { rotate: [0, 5, -5, 0] } : { y: [0, -10, 0] }}
+                                        transition={{ duration: 0.5, repeat: isLocked && !hasAnswered ? 5 : Infinity }}
                                         className="text-7xl mb-6 font-normal"
                                     >
-                                        ⏳
+                                        {isLocked && !hasAnswered ? '🚫' : '⏳'}
                                     </motion.div>
-                                    <p className="text-xl font-bold text-gray-400 italic">Answer Sent!<br />Wait for Host...</p>
+                                    <p className="text-xl font-bold text-gray-400 italic">
+                                        {hasAnswered ? 'Answer Sent!' : 'Time is Up!'}
+                                        <br />
+                                        {hasAnswered ? 'Wait for Host...' : 'Input Locked'}
+                                    </p>
                                 </div>
                             )}
                         </div>
