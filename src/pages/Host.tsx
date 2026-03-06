@@ -12,7 +12,7 @@ export default function Host() {
         roomCode, setRole, players,
         status, startGame, questions, currentQuestionIndex,
         nextQuestion, timeLeft, setTimeLeft, subStatus, revealAnswer,
-        isVerified, setIsVerified, resetGame
+        isVerified, setIsVerified, resetGame, removePlayer
     } = useGameStore();
 
     const channelRef = useRef<any>(null);
@@ -36,6 +36,10 @@ export default function Host() {
             .on('broadcast', { event: 'player_join' }, ({ payload }) => {
                 console.log('Player joining:', payload);
                 useGameStore.getState().addPlayer(payload.id, payload.name);
+            })
+            .on('broadcast', { event: 'player_leave' }, ({ payload }) => {
+                console.log('Player leaving:', payload);
+                removePlayer(payload.id);
             })
             .on('broadcast', { event: 'submit_answer' }, ({ payload }) => {
                 const state = useGameStore.getState();
@@ -312,7 +316,7 @@ export default function Host() {
                 }}
                 className="absolute top-6 right-6 md:top-8 md:right-8 bg-red-500/20 hover:bg-red-500/40 backdrop-blur-md text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-all active:scale-95 z-20 shadow-lg border border-red-500/30"
             >
-                ⏹️ LEAVE
+                LEAVE
             </button>
             <motion.div initial={{ scale: 0.8, y: 50, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 200, damping: 20 }} className="bg-white rounded-[3rem] p-12 shadow-2xl max-w-2xl w-full text-center border-b-8 border-gray-200">
                 <div className="mb-8">

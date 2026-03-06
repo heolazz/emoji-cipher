@@ -43,6 +43,7 @@ interface GameState {
     setIsVerified: (val: boolean) => void;
     setIsJoined: (val: boolean) => void;
     resetGame: () => void;
+    removePlayer: (id: string) => void;
 }
 
 export const useGameStore = create<GameState>()(
@@ -108,6 +109,11 @@ export const useGameStore = create<GameState>()(
                 isVerified: false,
                 isJoined: false,
                 playerName: null
+            }),
+            removePlayer: (id) => set((state) => {
+                const newPlayers = { ...state.players };
+                delete newPlayers[id];
+                return { players: newPlayers };
             })
         }),
         {

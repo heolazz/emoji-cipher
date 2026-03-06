@@ -120,15 +120,22 @@ export default function Join() {
         return (
             <div className="min-h-screen bg-[#6a5ae0] bg-polka flex flex-col items-center justify-center p-6 font-sans relative">
                 <button
-                    onClick={() => {
+                    onClick={async () => {
                         if (window.confirm('Leave this game and return to home?')) {
+                            if (channelRef.current) {
+                                await channelRef.current.send({
+                                    type: 'broadcast',
+                                    event: 'player_leave',
+                                    payload: { id: playerId }
+                                });
+                            }
                             resetGame();
                             navigate('/');
                         }
                     }}
                     className="absolute top-6 right-6 md:top-8 md:right-8 bg-red-500/20 hover:bg-red-500/40 backdrop-blur-md text-white px-5 py-2 md:px-6 md:py-3 rounded-full font-bold flex items-center gap-2 transition-all active:scale-95 z-20 shadow-lg text-sm md:text-base border border-red-500/30"
                 >
-                    ⏹️ LEAVE
+                    LEAVE
                 </button>
                 <motion.div
                     initial={{ y: 50, scale: 0.8, opacity: 0 }}
