@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 
 export default function Host() {
+    const navigate = useNavigate();
     const [pin, setPin] = useState('');
     const [isVerified, setIsVerified] = useState(false);
     const {
@@ -98,7 +100,6 @@ export default function Host() {
     if (status === 'PLAYING') {
         const currentQuiz = questions[currentQuestionIndex];
         const sortedPlayers = Object.values(players).sort((a, b) => b.score - a.score);
-        const maxScore = Math.max(...sortedPlayers.map(p => p.score), 10);
 
         const handleNext = async () => {
             if (currentQuestionIndex < questions.length - 1) {
@@ -111,7 +112,7 @@ export default function Host() {
                     });
                 }
             } else {
-                alert('Game End! Final Scoreboard.');
+                navigate('/podium');
             }
         };
 

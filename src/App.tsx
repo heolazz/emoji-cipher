@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Host from './pages/Host';
 import Join from './pages/Join';
+import Podium from './pages/Podium';
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/host" element={<Host />} />
         <Route path="/join" element={<Join />} />
+        <Route path="/podium" element={<Podium />} />
       </Routes>
     </BrowserRouter>
   )

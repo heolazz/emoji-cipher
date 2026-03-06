@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { supabase } from '../lib/supabase';
+import { motion } from 'framer-motion';
 
 export default function Join() {
     const [code, setCode] = useState('');
@@ -73,72 +74,109 @@ export default function Join() {
 
     if (isJoined) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#fdfbf7]">
-                {status === 'PLAYING' ? (
-                    <div className="w-full max-w-sm flex flex-col items-center gap-6">
-                        <h2 className="text-2xl font-serif font-bold text-black mb-4">Your Answer</h2>
-
-                        {!hasAnswered ? (
-                            <>
-                                <input
-                                    type="text"
-                                    value={answer}
-                                    onChange={(e) => setAnswer(e.target.value)}
-                                    placeholder="Type answer here..."
-                                    className="w-full border-2 border-gray-100 rounded-3xl px-6 py-6 text-2xl text-center focus:border-black outline-none transition-all"
-                                    autoFocus
-                                />
-                                <button
-                                    onClick={handleSubmitAnswer}
-                                    className="w-full bg-black text-white rounded-3xl py-5 text-2xl font-bold active:scale-95 transition-all shadow-xl"
-                                >
-                                    Submit
-                                </button>
-                            </>
-                        ) : (
-                            <div className="text-center animate-pulse">
-                                <p className="text-6xl mb-6">⏳</p>
-                                <p className="text-2xl font-serif text-gray-400">Answer Sent! Wait for the host...</p>
+            <div className="min-h-screen bg-[#6a5ae0] flex flex-col items-center justify-center p-6 font-sans">
+                <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="bg-white rounded-[3rem] p-10 shadow-2xl max-w-sm w-full text-center border-b-8 border-gray-200"
+                >
+                    {status === 'PLAYING' ? (
+                        <div className="flex flex-col items-center gap-8">
+                            <div className="bg-[#6a5ae0]/10 text-[#6a5ae0] px-6 py-2 rounded-xl font-black uppercase tracking-widest text-xs">
+                                YOUR ANSWER
                             </div>
-                        )}
-                    </div>
-                ) : (
-                    <div className="text-center animate-[fade-in_1s_ease-out]">
-                        <h2 className="text-4xl font-serif font-bold mb-4 text-black">Connected!</h2>
-                        <p className="text-xl text-gray-500">Look at the iPad screen. Game will start soon...</p>
-                    </div>
-                )}
+
+                            {!hasAnswered ? (
+                                <div className="w-full flex flex-col gap-6">
+                                    <input
+                                        type="text"
+                                        value={answer}
+                                        onChange={(e) => setAnswer(e.target.value)}
+                                        placeholder="TYPE HERE..."
+                                        className="w-full bg-gray-50 border-4 border-gray-100 rounded-3xl px-6 py-6 text-2xl text-center font-black placeholder:text-gray-300 focus:border-[#6a5ae0] outline-none transition-all uppercase"
+                                        autoFocus
+                                    />
+                                    <button
+                                        onClick={handleSubmitAnswer}
+                                        className="w-full bg-[#ffca28] text-black rounded-[2rem] py-6 text-2xl font-black shadow-[0_8px_0_0_#c79100] active:shadow-none active:translate-y-2 transition-all uppercase"
+                                    >
+                                        SUBMIT
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="text-center py-10">
+                                    <motion.div
+                                        animate={{ y: [0, -10, 0] }}
+                                        transition={{ duration: 2, repeat: Infinity }}
+                                        className="text-7xl mb-6 font-normal"
+                                    >
+                                        ⏳
+                                    </motion.div>
+                                    <p className="text-xl font-bold text-gray-400 italic">Answer Sent!<br />Wait for Host...</p>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="text-center py-10">
+                            <div className="bg-[#ffca28] w-20 h-20 rounded-3xl flex items-center justify-center text-4xl mx-auto mb-8 shadow-lg">
+                                ✅
+                            </div>
+                            <h2 className="text-4xl font-black text-black mb-4">CONNECTED!</h2>
+                            <p className="text-lg font-bold text-gray-400 italic leading-relaxed px-4">
+                                Keep an eye on the iPad screen. The game starts soon!
+                            </p>
+                        </div>
+                    )}
+                </motion.div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#fdfbf7]">
-            <h2 className="text-3xl font-serif font-bold mb-8 text-black">Join Game</h2>
+        <div className="min-h-screen bg-[#6a5ae0] flex flex-col items-center justify-center p-6 font-sans">
+            <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="bg-white rounded-[3rem] p-10 shadow-2xl max-w-sm w-full border-b-8 border-gray-200"
+            >
+                <div className="text-center mb-10">
+                    <div className="bg-[#6a5ae0]/10 text-[#6a5ae0] w-20 h-20 rounded-3xl flex items-center justify-center text-4xl mx-auto mb-6">
+                        👋
+                    </div>
+                    <h2 className="text-4xl font-black text-black mb-2 uppercase">JOIN GAME</h2>
+                    <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">Enter your details</p>
+                </div>
 
-            <div className="w-full max-w-xs flex flex-col gap-4">
-                <input
-                    type="text"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    placeholder="Room Code"
-                    className="border-2 border-gray-100 rounded-2xl px-4 py-4 text-center text-xl font-bold uppercase focus:border-black outline-none transition-colors"
-                    maxLength={4}
-                />
-                <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Your Name"
-                    className="border-2 border-gray-100 rounded-2xl px-4 py-4 text-center text-xl focus:border-black outline-none transition-colors"
-                />
-                <button
-                    onClick={handleJoin}
-                    className="bg-black text-white rounded-2xl py-4 text-xl font-semibold shadow-lg active:scale-95 transition-transform mt-4"
-                >
-                    Let's Play!
-                </button>
-            </div>
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <label className="text-[#6a5ae0] font-black text-xs uppercase ml-4">Room Code</label>
+                        <input
+                            type="text"
+                            value={code}
+                            onChange={(e) => setCode(e.target.value)}
+                            placeholder="CODE"
+                            className="w-full bg-gray-50 border-4 border-gray-100 rounded-2xl px-4 py-5 text-center text-2xl font-black uppercase placeholder:text-gray-200 focus:border-[#6a5ae0] outline-none transition-all"
+                            maxLength={4}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[#6a5ae0] font-black text-xs uppercase ml-4">Your Name</label>
+                        <input
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="NAME"
+                            className="w-full bg-gray-50 border-4 border-gray-100 rounded-2xl px-4 py-5 text-center text-xl font-black placeholder:text-gray-200 focus:border-[#6a5ae0] outline-none transition-all"
+                        />
+                    </div>
+                    <button
+                        onClick={handleJoin}
+                        className="w-full bg-[#ffca28] text-black rounded-[2rem] py-6 text-2xl font-black shadow-[0_8px_0_0_#c79100] active:shadow-none active:translate-y-2 transition-all mt-6 uppercase"
+                    >
+                        LET'S PLAY!
+                    </button>
+                </div>
+            </motion.div>
         </div>
     );
 }
