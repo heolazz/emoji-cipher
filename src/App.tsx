@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Host from './pages/Host';
+import Join from './pages/Join';
 
 function App() {
   return (
@@ -8,7 +9,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/host" element={<Host />} />
-        {/* Akan ditambahkan path /join di task berikutnya */}
+        <Route path="/join" element={<Join />} />
       </Routes>
     </BrowserRouter>
   )
