@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { quizData } from '../data/quizData';
 import type { QuizItem } from '../data/quizData';
 
-export type RoomStatus = 'LOBBY' | 'PLAYING' | 'SCOREBOARD' | 'END'
+export type RoomStatus = 'LOBBY' | 'PLAYING' | 'FINISHED'
 
 interface Player {
     id: string
@@ -15,6 +15,7 @@ interface Player {
 interface GameState {
     roomCode: string | null
     status: RoomStatus
+    subStatus: 'QUESTION' | 'REVEAL' // Kahoot-like states
     role: 'HOST' | 'PLAYER' | null
     players: Record<string, Player>
     currentQuestionIndex: number
@@ -29,6 +30,7 @@ interface GameState {
     questions: QuizItem[];
     startGame: () => void;
     nextQuestion: () => void;
+    revealAnswer: () => void;
     setTimeLeft: (time: number) => void; // Added setTimeLeft action
     validateAnswer: (answer: string) => boolean;
 }
@@ -36,6 +38,7 @@ interface GameState {
 export const useGameStore = create<GameState>((set, get) => ({
     roomCode: null,
     status: 'LOBBY',
+    subStatus: 'QUESTION',
     role: null,
     players: {},
     currentQuestionIndex: 0,
@@ -58,11 +61,13 @@ export const useGameStore = create<GameState>((set, get) => ({
         };
     }),
     setPlayers: (players) => set({ players }),
-    startGame: () => set({ status: 'PLAYING', currentQuestionIndex: 0, timeLeft: 20 }), // Reset timeLeft on game start
+    startGame: () => set({ status: 'PLAYING', subStatus: 'QUESTION', currentQuestionIndex: 0, timeLeft: 20 }), // Reset timeLeft on game start
     nextQuestion: () => set((state) => ({
         currentQuestionIndex: state.currentQuestionIndex + 1,
-        timeLeft: 20 // Reset timeLeft on next question
+        timeLeft: 20, // Reset timeLeft on next question
+        subStatus: 'QUESTION'
     })),
+    revealAnswer: () => set({ subStatus: 'REVEAL' }),
     setTimeLeft: (time) => set({ timeLeft: time }), // setTimeLeft implementation
     validateAnswer: (answer: string): boolean => {
         const state = get();
