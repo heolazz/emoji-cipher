@@ -34,7 +34,7 @@ export default function Podium() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-[#6a5ae0] flex flex-col items-center justify-center p-8 font-sans overflow-hidden">
+        <div className="min-h-screen bg-[#6a5ae0] bg-polka flex flex-col items-center justify-center p-8 font-sans overflow-hidden">
             <motion.h1
                 initial={{ y: -50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
