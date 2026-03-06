@@ -10,7 +10,7 @@ export default function Join() {
         roomCode, setRoomCode,
         playerName, setPlayerName,
         isJoined, setIsJoined,
-        setRole, status
+        setRole, status, resetGame
     } = useGameStore();
 
     const [code, setCode] = useState(roomCode || '');
@@ -118,7 +118,18 @@ export default function Join() {
 
     if (isJoined) {
         return (
-            <div className="min-h-screen bg-[#6a5ae0] bg-polka flex flex-col items-center justify-center p-6 font-sans">
+            <div className="min-h-screen bg-[#6a5ae0] bg-polka flex flex-col items-center justify-center p-6 font-sans relative">
+                <button
+                    onClick={() => {
+                        if (window.confirm('Leave this game and return to home?')) {
+                            resetGame();
+                            navigate('/');
+                        }
+                    }}
+                    className="absolute top-6 right-6 md:top-8 md:right-8 bg-red-500/20 hover:bg-red-500/40 backdrop-blur-md text-white px-5 py-2 md:px-6 md:py-3 rounded-full font-bold flex items-center gap-2 transition-all active:scale-95 z-20 shadow-lg text-sm md:text-base border border-red-500/30"
+                >
+                    ⏹️ LEAVE
+                </button>
                 <motion.div
                     initial={{ y: 50, scale: 0.8, opacity: 0 }}
                     animate={{ y: 0, scale: 1, opacity: 1 }}

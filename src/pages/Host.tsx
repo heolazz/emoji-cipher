@@ -12,7 +12,7 @@ export default function Host() {
         roomCode, setRole, players,
         status, startGame, questions, currentQuestionIndex,
         nextQuestion, timeLeft, setTimeLeft, subStatus, revealAnswer,
-        isVerified, setIsVerified
+        isVerified, setIsVerified, resetGame
     } = useGameStore();
 
     const channelRef = useRef<any>(null);
@@ -139,6 +139,19 @@ export default function Host() {
                 <button onClick={() => navigate('/')} className="absolute top-6 left-6 md:top-8 md:left-8 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-all active:scale-95 z-20 shadow-lg">
                     BACK
                 </button>
+                {isVerified && (
+                    <button
+                        onClick={() => {
+                            if (window.confirm('Cancel game and return to home?')) {
+                                resetGame();
+                                navigate('/');
+                            }
+                        }}
+                        className="absolute top-6 right-6 md:top-8 md:right-8 bg-red-500/20 hover:bg-red-500/40 backdrop-blur-md text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-all active:scale-95 z-20 shadow-lg border border-red-500/30"
+                    >
+                        ⏹️ CANCEL
+                    </button>
+                )}
                 <motion.div initial={{ y: 50, scale: 0.9, opacity: 0 }} animate={{ y: 0, scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 200, damping: 20 }} className="bg-white rounded-[3rem] p-12 shadow-2xl max-w-md w-full text-center border-b-8 border-gray-200">
                     <div className="bg-[#6a5ae0]/10 w-20 h-20 rounded-3xl flex items-center justify-center text-4xl mx-auto mb-8">🔐</div>
                     <h2 className="text-4xl font-black text-black mb-2 uppercase">HOST ACCESS</h2>
@@ -194,11 +207,24 @@ export default function Host() {
                             <div key={i} className={`h-2 md:h-3 w-8 md:w-12 rounded-full transition-all duration-500 ${i <= currentQuestionIndex ? 'bg-[#ffca28]' : 'bg-white/20'}`} />
                         ))}
                     </div>
-                    <div className="bg-[#ffca28] px-6 py-2 rounded-2xl font-bold text-[#6a5ae0] shadow-lg flex items-center gap-3">
-                        <span className="text-xl">⏱️</span>
-                        <span className={timeLeft <= 5 && subStatus === 'QUESTION' ? 'text-red-600 animate-pulse' : ''}>
-                            00:{timeLeft.toString().padStart(2, '0')}
-                        </span>
+                    <div className="flex items-center gap-4">
+                        <div className="bg-[#ffca28] px-6 py-2 rounded-2xl font-bold text-[#6a5ae0] shadow-lg flex items-center gap-3">
+                            <span className="text-xl">⏱️</span>
+                            <span className={timeLeft <= 5 && subStatus === 'QUESTION' ? 'text-red-600 animate-pulse' : ''}>
+                                00:{timeLeft.toString().padStart(2, '0')}
+                            </span>
+                        </div>
+                        <button
+                            onClick={() => {
+                                if (window.confirm('End this game session?')) {
+                                    resetGame();
+                                    navigate('/');
+                                }
+                            }}
+                            className="bg-white/10 hover:bg-white/30 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition-all text-xs"
+                        >
+                            QUIT
+                        </button>
                     </div>
                 </div>
 
@@ -276,6 +302,17 @@ export default function Host() {
         <div className="min-h-screen bg-[#6a5ae0] bg-polka flex flex-col items-center justify-center p-8 font-sans relative">
             <button onClick={() => navigate('/')} className="absolute top-6 left-6 md:top-8 md:left-8 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-all active:scale-95 z-20 shadow-lg">
                 BACK
+            </button>
+            <button
+                onClick={() => {
+                    if (window.confirm('Leave this game lobby?')) {
+                        resetGame();
+                        navigate('/');
+                    }
+                }}
+                className="absolute top-6 right-6 md:top-8 md:right-8 bg-red-500/20 hover:bg-red-500/40 backdrop-blur-md text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-all active:scale-95 z-20 shadow-lg border border-red-500/30"
+            >
+                ⏹️ LEAVE
             </button>
             <motion.div initial={{ scale: 0.8, y: 50, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 200, damping: 20 }} className="bg-white rounded-[3rem] p-12 shadow-2xl max-w-2xl w-full text-center border-b-8 border-gray-200">
                 <div className="mb-8">
