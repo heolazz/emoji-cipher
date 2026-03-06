@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { supabase } from '../lib/supabase';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Host() {
     const [pin, setPin] = useState('');
     const [isVerified, setIsVerified] = useState(false);
     const {
         roomCode, setRoomCode, setRole, players, addPlayer,
-        status, startGame, questions, currentQuestionIndex
+        status, startGame, questions, currentQuestionIndex,
+        validateAnswer, updatePlayerScore, nextQuestion
     } = useGameStore();
     const channelRef = useRef<any>(null);
 
@@ -22,6 +24,12 @@ export default function Host() {
                     score: 0,
                     isConnected: true
                 });
+            })
+            .on('broadcast', { event: 'submit_answer' }, ({ payload }) => {
+                const isCorrect = validateAnswer(payload.answer);
+                if (isCorrect) {
+                    updatePlayerScore(payload.id, 10);
+                }
             })
             .subscribe();
 
@@ -82,17 +90,97 @@ export default function Host() {
 
     if (status === 'PLAYING') {
         const currentQuiz = questions[currentQuestionIndex];
+        const sortedPlayers = Object.values(players).sort((a, b) => b.score - a.score);
+        const maxScore = Math.max(...sortedPlayers.map(p => p.score), 10);
+
+        const handleNext = async () => {
+            if (currentQuestionIndex < questions.length - 1) {
+                nextQuestion();
+                if (channelRef.current) {
+                    await channelRef.current.send({
+                        type: 'broadcast',
+                        event: 'next_question',
+                        payload: {}
+                    });
+                }
+            } else {
+                alert('Game End! Final Scoreboard.');
+            }
+        };
+
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#fdfbf7]">
-                <span className="bg-black/5 px-6 py-2 rounded-full text-sm font-bold uppercase tracking-widest mb-6 text-gray-500">
-                    {currentQuiz.category}
-                </span>
-                <h1 className="text-[10rem] md:text-[14rem] mb-12 animate-bounce transition-all">
-                    {currentQuiz.emojis}
-                </h1>
-                <p className="text-3xl text-gray-400 italic font-serif max-w-2xl text-center leading-relaxed">
-                    "{currentQuiz.clue}"
-                </p>
+            <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 gap-8 p-12 bg-[#fdfbf7]">
+                {/* Left Side: Question Display */}
+                <div className="flex flex-col items-center justify-center bg-white rounded-[3rem] shadow-xl border border-gray-100 p-12">
+                    <motion.span
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-black/5 px-8 py-3 rounded-full text-lg font-bold uppercase tracking-[0.3em] mb-12 text-gray-400"
+                    >
+                        {currentQuiz.category}
+                    </motion.span>
+
+                    <motion.h1
+                        key={currentQuiz.id}
+                        initial={{ scale: 0.5, opacity: 0, rotate: -10 }}
+                        animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                        className="text-[12rem] md:text-[16rem] mb-12 drop-shadow-2xl"
+                    >
+                        {currentQuiz.emojis}
+                    </motion.h1>
+
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                        className="text-4xl text-gray-400 italic font-serif text-center max-w-xl leading-relaxed mb-12"
+                    >
+                        "{currentQuiz.clue}"
+                    </motion.p>
+
+                    <button
+                        onClick={handleNext}
+                        className="mt-4 bg-gray-100 hover:bg-black hover:text-white text-gray-400 px-12 py-5 rounded-3xl font-bold text-xl transition-all active:scale-95"
+                    >
+                        {currentQuestionIndex < questions.length - 1 ? "Next Question →" : "Finish Game"}
+                    </button>
+                </div>
+
+                {/* Right Side: Racing Leaderboard */}
+                <div className="flex flex-col justify-center p-8 bg-gray-50/50 rounded-[3rem] border border-dashed border-gray-200">
+                    <h2 className="text-3xl font-serif font-bold mb-12 text-black text-center">Live Leaderboard</h2>
+
+                    <div className="flex flex-col gap-6 w-full max-w-md mx-auto">
+                        <AnimatePresence mode="popLayout">
+                            {sortedPlayers.map((p) => {
+                                const percentage = (p.score / maxScore) * 100;
+                                return (
+                                    <motion.div
+                                        key={p.id}
+                                        layout
+                                        initial={{ opacity: 0, x: -50 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        className="flex flex-col gap-2"
+                                    >
+                                        <div className="flex justify-between items-end px-2">
+                                            <span className="font-bold text-xl text-gray-800">{p.name}</span>
+                                            <span className="font-serif italic text-2xl text-black">{p.score} pt</span>
+                                        </div>
+                                        <div className="h-10 w-full bg-white rounded-2xl overflow-hidden shadow-inner border border-gray-100">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${percentage}%` }}
+                                                transition={{ type: "spring", stiffness: 50, damping: 15 }}
+                                                className="h-full bg-black rounded-r-xl"
+                                            />
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </AnimatePresence>
+                    </div>
+                </div>
             </div>
         );
     }

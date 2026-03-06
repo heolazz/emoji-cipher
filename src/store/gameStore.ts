@@ -28,9 +28,10 @@ interface GameState {
     questions: QuizItem[];
     startGame: () => void;
     nextQuestion: () => void;
+    validateAnswer: (answer: string) => boolean;
 }
 
-export const useGameStore = create<GameState>((set) => ({
+export const useGameStore = create<GameState>((set, get) => ({
     roomCode: null,
     status: 'LOBBY',
     role: null,
@@ -58,4 +59,9 @@ export const useGameStore = create<GameState>((set) => ({
     nextQuestion: () => set((state) => ({
         currentQuestionIndex: state.currentQuestionIndex + 1
     })),
+    validateAnswer: (answer: string): boolean => {
+        const state = get();
+        const currentQuiz = state.questions[state.currentQuestionIndex];
+        return currentQuiz.answer.trim().toLowerCase() === answer.trim().toLowerCase();
+    }
 }))
