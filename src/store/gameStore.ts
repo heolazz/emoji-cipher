@@ -1,4 +1,6 @@
 import { create } from 'zustand'
+import { quizData } from '../data/quizData';
+import type { QuizItem } from '../data/quizData';
 
 export type RoomStatus = 'LOBBY' | 'PLAYING' | 'SCOREBOARD' | 'END'
 
@@ -23,6 +25,9 @@ interface GameState {
     addPlayer: (player: Player) => void
     updatePlayerScore: (playerId: string, points: number) => void
     setPlayers: (players: Record<string, Player>) => void
+    questions: QuizItem[];
+    startGame: () => void;
+    nextQuestion: () => void;
 }
 
 export const useGameStore = create<GameState>((set) => ({
@@ -31,6 +36,7 @@ export const useGameStore = create<GameState>((set) => ({
     role: null,
     players: {},
     currentQuestionIndex: 0,
+    questions: quizData,
 
     setRoomCode: (code) => set({ roomCode: code }),
     setRole: (role) => set({ role: role }),
@@ -48,4 +54,8 @@ export const useGameStore = create<GameState>((set) => ({
         }
     })),
     setPlayers: (players) => set({ players }),
+    startGame: () => set({ status: 'PLAYING', currentQuestionIndex: 0 }),
+    nextQuestion: () => set((state) => ({
+        currentQuestionIndex: state.currentQuestionIndex + 1
+    })),
 }))

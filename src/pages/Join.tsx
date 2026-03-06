@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { supabase } from '../lib/supabase';
 
@@ -6,7 +6,21 @@ export default function Join() {
     const [code, setCode] = useState('');
     const [name, setName] = useState('');
     const [isJoined, setIsJoined] = useState(false);
-    const { setRoomCode, setRole } = useGameStore();
+    const { roomCode, setRoomCode, setRole, status, startGame } = useGameStore();
+
+    useEffect(() => {
+        if (!isJoined || !roomCode) return;
+
+        const channel = supabase.channel(`room_${roomCode}`)
+            .on('broadcast', { event: 'game_start' }, () => {
+                startGame();
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [isJoined, roomCode, startGame]);
 
     const handleJoin = async () => {
         if (code.length === 4 && name.trim()) {
@@ -35,8 +49,14 @@ export default function Join() {
     if (isJoined) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#fdfbf7]">
-                <h2 className="text-3xl font-serif font-bold mb-4 text-black text-center">Connected!</h2>
-                <p className="text-gray-500 text-center">Look at the iPad screen. Game will start soon...</p>
+                <h2 className="text-3xl font-serif font-bold mb-4 text-black text-center">
+                    {status === 'PLAYING' ? "Game Started!" : "Connected!"}
+                </h2>
+                <p className="text-gray-500 text-center">
+                    {status === 'PLAYING'
+                        ? "Get ready to answer on your phone!"
+                        : "Look at the iPad screen. Game will start soon..."}
+                </p>
             </div>
         );
     }
