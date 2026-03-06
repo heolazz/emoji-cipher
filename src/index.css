@@ -1,6 +1,16 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: 'Fredoka', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
 body {
-  background-color: #fdfbf7;
+  font-family: var(--font-sans);
+  background-color: #6a5ae0;
   color: #1f2937;
+}
+
+.bg-polka {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.15) 3px, transparent 3px);
+  background-size: 40px 40px;
 }
