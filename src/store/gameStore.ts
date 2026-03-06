@@ -8,8 +8,9 @@ interface Player {
     id: string
     name: string
     score: number
-    lastAnswerCorrect?: boolean
     isConnected: boolean
+    streak: number
+    lastResult: 'CORRECT' | 'INCORRECT' | 'NONE'
 }
 
 interface GameState {
@@ -48,15 +49,21 @@ export const useGameStore = create<GameState>((set, get) => ({
     setRoomCode: (code) => set({ roomCode: code }),
     setRole: (role) => set({ role: role }),
     addPlayer: (id, name) => set((state) => ({
-        players: { ...state.players, [id]: { id, name, score: 0, isConnected: true } } // Updated addPlayer logic
+        players: { ...state.players, [id]: { id, name, score: 0, isConnected: true, streak: 0, lastResult: 'NONE' } }
     })),
-    updatePlayerScore: (id, points) => set((state) => { // Updated updatePlayerScore logic
+    updatePlayerScore: (id, points) => set((state) => {
         const player = state.players[id];
         if (!player) return state;
+        const isCorrect = points > 0;
         return {
             players: {
                 ...state.players,
-                [id]: { ...player, score: player.score + points, lastAnswerCorrect: true }
+                [id]: {
+                    ...player,
+                    score: player.score + points,
+                    streak: isCorrect ? player.streak + 1 : 0,
+                    lastResult: isCorrect ? 'CORRECT' : 'INCORRECT'
+                }
             }
         };
     }),

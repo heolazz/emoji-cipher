@@ -10,11 +10,16 @@ export default function Join() {
     const [answer, setAnswer] = useState('');
     const [hasAnswered, setHasAnswered] = useState(false);
     const [isLocked, setIsLocked] = useState(false);
+    const [result, setResult] = useState<{ isCorrect: boolean, points: number, streak: number } | null>(null);
+    const [myPlayerId, setMyPlayerId] = useState<string>('');
     const { roomCode, setRoomCode, setRole, status, startGame } = useGameStore();
 
     const channelRef = useRef<any>(null);
 
     useEffect(() => {
+        const id = Math.random().toString(36).substring(2, 9);
+        setMyPlayerId(id);
+
         if (!isJoined || !roomCode) return;
 
         const channel = supabase.channel(`room_${roomCode}`)
@@ -25,9 +30,19 @@ export default function Join() {
                 setHasAnswered(false);
                 setIsLocked(false);
                 setAnswer('');
+                setResult(null);
             })
             .on('broadcast', { event: 'timeout' }, () => {
                 setIsLocked(true);
+            })
+            .on('broadcast', { event: 'answer_result' }, ({ payload }) => {
+                if (payload.playerId === myPlayerId) {
+                    setResult({
+                        isCorrect: payload.isCorrect,
+                        points: payload.points,
+                        streak: payload.streak
+                    });
+                }
             })
             .subscribe();
 
@@ -36,7 +51,7 @@ export default function Join() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [isJoined, roomCode, startGame]);
+    }, [isJoined, roomCode, startGame, myPlayerId]);
 
     const handleJoin = async () => {
         if (code.length === 4 && name.trim()) {
@@ -44,7 +59,7 @@ export default function Join() {
             setRoomCode(room);
             setRole('PLAYER');
 
-            const playerId = Math.random().toString(36).substring(7);
+            const playerId = myPlayerId; // Use the generated myPlayerId
             localStorage.setItem('emoji_player_id', playerId);
             const channel = supabase.channel(`room_${room}`, {
                 config: { broadcast: { self: true } }
@@ -86,12 +101,39 @@ export default function Join() {
                     className="bg-white rounded-[3rem] p-10 shadow-2xl max-w-sm w-full text-center border-b-8 border-gray-200"
                 >
                     {status === 'PLAYING' ? (
-                        <div className="flex flex-col items-center gap-8">
-                            <div className="bg-[#6a5ae0]/10 text-[#6a5ae0] px-6 py-2 rounded-xl font-black uppercase tracking-widest text-xs">
+                        <div className="bg-white rounded-[2.5rem] p-10 shadow-2xl flex flex-col items-center justify-center border-b-8 border-gray-200">
+                            <div className="bg-[#6a5ae0]/10 text-[#6a5ae0] px-6 py-2 rounded-xl font-black uppercase tracking-widest mb-10">
                                 YOUR ANSWER
                             </div>
 
-                            {!hasAnswered && !isLocked ? (
+                            {/* Result Screen (Kahoot Style) */}
+                            {result ? (
+                                <motion.div
+                                    initial={{ scale: 0.5, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    className={`w-full flex flex-col items-center justify-center p-8 rounded-[2rem] text-white ${result.isCorrect ? 'bg-green-500 shadow-[0_8px_0_0_#15803d]' : 'bg-red-500 shadow-[0_8px_0_0_#b91c1c]'
+                                        }`}
+                                >
+                                    <div className="text-[6rem] mb-4">
+                                        {result.isCorrect ? '✨' : '❄️'}
+                                    </div>
+                                    <h2 className="text-4xl font-black mb-2 uppercase">
+                                        {result.isCorrect ? 'Correct!' : 'Incorrect'}
+                                    </h2>
+
+                                    {result.isCorrect && (
+                                        <div className="text-2xl font-black mb-4">
+                                            +{result.points} pts
+                                        </div>
+                                    )}
+
+                                    {result.streak > 1 && (
+                                        <div className="bg-white/20 px-6 py-2 rounded-full font-black text-sm uppercase flex items-center gap-2">
+                                            🔥 {result.streak} STREAK
+                                        </div>
+                                    )}
+                                </motion.div>
+                            ) : !hasAnswered && !isLocked ? (
                                 <div className="w-full flex flex-col gap-6">
                                     <input
                                         type="text"

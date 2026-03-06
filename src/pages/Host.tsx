@@ -34,12 +34,29 @@ export default function Host() {
                 if (subStatus !== 'QUESTION') return;
 
                 const isCorrect = validateAnswer(payload.answer);
-                if (isCorrect) {
-                    // Kahoot Logic: Base 500 + (seconds left * 25)
-                    const speedBonus = timeLeft * 25;
-                    const totalPoints = 500 + speedBonus;
 
-                    updatePlayerScore(payload.id, totalPoints);
+                // Kahoot Logic: Base 500 + (seconds left * 25)
+                const speedBonus = timeLeft * 25;
+                const totalPoints = isCorrect ? (500 + speedBonus) : 0;
+
+                updatePlayerScore(payload.id, totalPoints);
+
+                // Broadcast individual result back to the player
+                if (channelRef.current) {
+                    const player = useGameStore.getState().players[payload.id];
+                    channelRef.current.send({
+                        type: 'broadcast',
+                        event: 'answer_result',
+                        payload: {
+                            playerId: payload.id,
+                            isCorrect,
+                            points: totalPoints,
+                            streak: player?.streak || 0
+                        }
+                    });
+                }
+
+                if (isCorrect) {
                     sounds.current.correct.play().catch(() => { });
                     confetti({
                         particleCount: 150,
@@ -143,8 +160,9 @@ export default function Host() {
         };
 
         return (
-            <div className="h-screen bg-[#6a5ae0] flex flex-col p-6 md:p-8 font-sans overflow-hidden">
-                <div className="flex justify-between items-center mb-6 shrink-0">
+            <div className="h-screen bg-[#6a5ae0] flex flex-col p-10 md:p-14 font-sans overflow-hidden">
+                {/* Top Header: Progress & Timer */}
+                <div className="flex justify-between items-center mb-8 shrink-0">
                     <div className="flex gap-2">
                         {questions.map((_, i) => (
                             <div key={i} className={`h-2 md:h-3 w-8 md:w-12 rounded-full transition-all duration-500 ${i <= currentQuestionIndex ? 'bg-[#ffca28]' : 'bg-white/20'}`} />
@@ -166,17 +184,27 @@ export default function Host() {
                                     <motion.span initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-[#6a5ae0]/10 text-[#6a5ae0] px-4 md:px-6 py-1 md:py-2 rounded-xl font-black uppercase tracking-widest mb-4 md:mb-8 text-xs md:text-sm">
                                         {currentQuiz.category}
                                     </motion.span>
-                                    <motion.h1 key={currentQuiz.id} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="text-[8rem] md:text-[12rem] lg:text-[15rem] leading-none mb-4 md:mb-8 drop-shadow-xl filter saturate-150">
+                                    <motion.h1
+                                        key={currentQuiz.id}
+                                        initial={{ y: 20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        className="text-[6rem] md:text-[10rem] lg:text-[12rem] leading-none mb-6 md:mb-10 drop-shadow-xl filter saturate-150"
+                                    >
                                         {currentQuiz.emojis}
                                     </motion.h1>
-                                    <p className="text-xl md:text-3xl text-gray-400 font-medium text-center italic max-w-xl italic">
+
+                                    <p className="text-xl md:text-2xl text-gray-400 font-medium text-center italic max-w-xl">
                                         "{currentQuiz.clue}"
                                     </p>
                                 </>
                             ) : (
-                                <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
+                                <motion.div
+                                    initial={{ scale: 0.8, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    className="text-center"
+                                >
                                     <h3 className="text-[#6a5ae0] font-black text-2xl mb-4 tracking-widest uppercase">The Answer Is</h3>
-                                    <h2 className="text-7xl md:text-9xl font-black text-black mb-8 bg-[#ffca28] px-12 py-6 rounded-full shadow-xl">
+                                    <h2 className="text-6xl md:text-8xl font-black text-black mb-8 bg-[#ffca28] px-12 py-6 rounded-full shadow-xl">
                                         {currentQuiz.answer}
                                     </h2>
                                     <div className="flex justify-center gap-4 text-6xl">🎉 ✅ 🏆</div>
