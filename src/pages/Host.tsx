@@ -126,13 +126,16 @@ export default function Host() {
 
     if (!isVerified) {
         return (
-            <div className="min-h-screen bg-[#6a5ae0] bg-polka flex flex-col items-center justify-center p-6 font-sans">
+            <div className="min-h-screen bg-[#6a5ae0] bg-polka flex flex-col items-center justify-center p-6 font-sans relative">
+                <button onClick={() => navigate('/')} className="absolute top-6 left-6 md:top-8 md:left-8 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-all active:scale-95 z-20 shadow-lg">
+                    ⬅️ BACK
+                </button>
                 <motion.div initial={{ y: 50, scale: 0.9, opacity: 0 }} animate={{ y: 0, scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 200, damping: 20 }} className="bg-white rounded-[3rem] p-12 shadow-2xl max-w-md w-full text-center border-b-8 border-gray-200">
                     <div className="bg-[#6a5ae0]/10 w-20 h-20 rounded-3xl flex items-center justify-center text-4xl mx-auto mb-8">🔐</div>
                     <h2 className="text-4xl font-black text-black mb-2 uppercase">HOST ACCESS</h2>
                     <p className="text-gray-400 font-bold uppercase tracking-widest text-xs mb-10">Enter your secret PIN</p>
                     <div className="space-y-6">
-                        <input type="password" value={pin} onChange={(e) => setPin(e.target.value)} placeholder="••••••" className="w-full bg-gray-50 border-4 border-gray-100 rounded-2xl px-4 py-6 text-center text-4xl font-black tracking-[0.5em] placeholder:text-gray-200 focus:border-[#6a5ae0] outline-none transition-all" maxLength={6} />
+                        <input type="password" value={pin} onChange={(e) => setPin(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleVerify()} placeholder="••••••" className="w-full bg-gray-50 border-4 border-gray-100 rounded-2xl px-4 py-6 text-center text-4xl font-black tracking-[0.5em] placeholder:text-gray-200 focus:border-[#6a5ae0] outline-none transition-all" maxLength={6} />
                         <button onClick={handleVerify} className="w-full bg-[#ffca28] text-black rounded-[2rem] py-6 text-2xl font-black shadow-[0_8px_0_0_#c79100] active:shadow-none active:translate-y-2 transition-all uppercase">VERIFY PIN</button>
                     </div>
                 </motion.div>
@@ -261,7 +264,10 @@ export default function Host() {
     }
 
     return (
-        <div className="min-h-screen bg-[#6a5ae0] bg-polka flex flex-col items-center justify-center p-8 font-sans">
+        <div className="min-h-screen bg-[#6a5ae0] bg-polka flex flex-col items-center justify-center p-8 font-sans relative">
+            <button onClick={() => navigate('/')} className="absolute top-6 left-6 md:top-8 md:left-8 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-all active:scale-95 z-20 shadow-lg">
+                ⬅️ BACK
+            </button>
             <motion.div initial={{ scale: 0.8, y: 50, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 200, damping: 20 }} className="bg-white rounded-[3rem] p-12 shadow-2xl max-w-2xl w-full text-center border-b-8 border-gray-200">
                 <div className="mb-8">
                     <p className="text-[#6a5ae0] font-black tracking-widest mb-2">ROOM CODE</p>

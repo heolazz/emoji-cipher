@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { supabase } from '../lib/supabase';
 import { motion } from 'framer-motion';
 
 export default function Join() {
+    const navigate = useNavigate();
     const [code, setCode] = useState('');
     const [name, setName] = useState('');
     const [isJoined, setIsJoined] = useState(false);
@@ -105,10 +107,10 @@ export default function Join() {
                     animate={{ y: 0, scale: 1, opacity: 1 }}
                     transition={{ type: "spring", stiffness: 200, damping: 20 }}
                     className={`rounded-[3rem] p-8 shadow-2xl max-w-sm w-full border-b-8 transition-colors duration-500 flex flex-col items-center justify-center min-h-[400px] ${status === 'FINISHED'
-                            ? 'bg-[#1f2937] border-gray-900 text-white'
-                            : result
-                                ? (result.isCorrect ? 'bg-green-500 border-green-700 text-white' : 'bg-red-500 border-red-700 text-white')
-                                : 'bg-white border-gray-200 text-black'
+                        ? 'bg-[#1f2937] border-gray-900 text-white'
+                        : result
+                            ? (result.isCorrect ? 'bg-green-500 border-green-700 text-white' : 'bg-red-500 border-red-700 text-white')
+                            : 'bg-white border-gray-200 text-black'
                         }`}
                 >
                     {status === 'FINISHED' ? (
@@ -199,6 +201,7 @@ export default function Join() {
                                                 type="text"
                                                 value={answer}
                                                 onChange={(e) => setAnswer(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && answer.trim() && handleSubmitAnswer()}
                                                 placeholder="TYPE ANSWER..."
                                                 className="w-full bg-gray-50 border-4 border-gray-100 rounded-3xl px-6 py-8 text-3xl text-center font-black placeholder:text-gray-200 focus:border-[#6a5ae0] focus:bg-white outline-none transition-all uppercase shadow-inner"
                                                 autoFocus
@@ -279,7 +282,13 @@ export default function Join() {
     }
 
     return (
-        <div className="min-h-screen bg-[#6a5ae0] bg-polka flex flex-col items-center justify-center p-6 font-sans">
+        <div className="min-h-screen bg-[#6a5ae0] bg-polka flex flex-col items-center justify-center p-6 font-sans relative">
+            <button
+                onClick={() => navigate('/')}
+                className="absolute top-6 left-6 md:top-8 md:left-8 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-5 py-2 md:px-6 md:py-3 rounded-full font-bold flex items-center gap-2 transition-all active:scale-95 z-20 shadow-lg text-sm md:text-base"
+            >
+                ⬅️ BACK
+            </button>
             <motion.div
                 initial={{ y: 50, scale: 0.8, opacity: 0 }}
                 animate={{ y: 0, scale: 1, opacity: 1 }}
@@ -301,6 +310,7 @@ export default function Join() {
                             type="text"
                             value={code}
                             onChange={(e) => setCode(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
                             placeholder="CODE"
                             className="w-full bg-gray-50 border-4 border-gray-100 rounded-2xl px-4 py-5 text-center text-2xl font-black uppercase placeholder:text-gray-200 focus:border-[#6a5ae0] outline-none transition-all"
                             maxLength={4}
@@ -312,6 +322,7 @@ export default function Join() {
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
                             placeholder="NAME"
                             className="w-full bg-gray-50 border-4 border-gray-100 rounded-2xl px-4 py-5 text-center text-xl font-black placeholder:text-gray-200 focus:border-[#6a5ae0] outline-none transition-all"
                         />
