@@ -4,6 +4,7 @@ import { useGameStore } from '../store/gameStore';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import ConfirmModal from '../components/ConfirmModal';
 
 export default function Host() {
     const navigate = useNavigate();
@@ -14,6 +15,8 @@ export default function Host() {
         nextQuestion, timeLeft, setTimeLeft, subStatus, revealAnswer,
         isVerified, setIsVerified, resetGame, removePlayer
     } = useGameStore();
+
+    const [showLeaveModal, setShowLeaveModal] = useState(false);
 
     const channelRef = useRef<any>(null);
     const sounds = useRef<Record<string, HTMLAudioElement>>({
@@ -145,15 +148,10 @@ export default function Host() {
                 </button>
                 {isVerified && (
                     <button
-                        onClick={() => {
-                            if (window.confirm('Cancel game and return to home?')) {
-                                resetGame();
-                                navigate('/');
-                            }
-                        }}
+                        onClick={() => setShowLeaveModal(true)}
                         className="absolute top-6 right-6 md:top-8 md:right-8 bg-red-500/20 hover:bg-red-500/40 backdrop-blur-md text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-all active:scale-95 z-20 shadow-lg border border-red-500/30"
                     >
-                        ⏹️ CANCEL
+                        CANCEL
                     </button>
                 )}
                 <motion.div initial={{ y: 50, scale: 0.9, opacity: 0 }} animate={{ y: 0, scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 200, damping: 20 }} className="bg-white rounded-[3rem] p-12 shadow-2xl max-w-md w-full text-center border-b-8 border-gray-200">
@@ -219,12 +217,7 @@ export default function Host() {
                             </span>
                         </div>
                         <button
-                            onClick={() => {
-                                if (window.confirm('End this game session?')) {
-                                    resetGame();
-                                    navigate('/');
-                                }
-                            }}
+                            onClick={() => setShowLeaveModal(true)}
                             className="bg-white/10 hover:bg-white/30 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition-all text-xs"
                         >
                             QUIT
@@ -308,12 +301,7 @@ export default function Host() {
                 BACK
             </button>
             <button
-                onClick={() => {
-                    if (window.confirm('Leave this game lobby?')) {
-                        resetGame();
-                        navigate('/');
-                    }
-                }}
+                onClick={() => setShowLeaveModal(true)}
                 className="absolute top-6 right-6 md:top-8 md:right-8 bg-red-500/20 hover:bg-red-500/40 backdrop-blur-md text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-all active:scale-95 z-20 shadow-lg border border-red-500/30"
             >
                 LEAVE
@@ -336,6 +324,17 @@ export default function Host() {
                 </div>
                 <button onClick={handleStartGame} className="w-full bg-[#ffca28] hover:bg-[#ffd54f] text-black py-6 rounded-[2rem] font-black text-3xl shadow-[0_8px_0_0_#c79100] active:shadow-none active:translate-y-2 transition-all disabled:opacity-50 disabled:active:translate-y-0" disabled={Object.keys(players).length === 0}>START GAME!</button>
             </motion.div>
+            <ConfirmModal
+                isOpen={showLeaveModal}
+                onClose={() => setShowLeaveModal(false)}
+                onConfirm={() => {
+                    resetGame();
+                    navigate('/');
+                }}
+                title={status === 'LOBBY' ? "CLOSE ROOM?" : "QUIT GAME?"}
+                message={status === 'LOBBY' ? "Disconnect from the room and return to the main menu?" : "Are you sure you want to end this game for everyone?"}
+                confirmText="YES, LEAVE"
+            />
         </div>
     );
 }

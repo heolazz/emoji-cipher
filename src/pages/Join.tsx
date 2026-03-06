@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { supabase } from '../lib/supabase';
 import { motion } from 'framer-motion';
+import ConfirmModal from '../components/ConfirmModal';
 
 export default function Join() {
     const navigate = useNavigate();
@@ -21,6 +22,7 @@ export default function Join() {
     const [result, setResult] = useState<{ isCorrect: boolean, points: number, streak: number } | null>(null);
     const [finalData, setFinalData] = useState<{ rank: number, score: number } | null>(null);
     const [playerId] = useState(() => localStorage.getItem('emoji_player_id') || Math.random().toString(36).substring(2, 9));
+    const [showLeaveModal, setShowLeaveModal] = useState(false);
 
     const channelRef = useRef<any>(null);
 
@@ -120,19 +122,7 @@ export default function Join() {
         return (
             <div className="min-h-screen bg-[#6a5ae0] bg-polka flex flex-col items-center justify-center p-6 font-sans relative">
                 <button
-                    onClick={async () => {
-                        if (window.confirm('Leave this game and return to home?')) {
-                            if (channelRef.current) {
-                                await channelRef.current.send({
-                                    type: 'broadcast',
-                                    event: 'player_leave',
-                                    payload: { id: playerId }
-                                });
-                            }
-                            resetGame();
-                            navigate('/');
-                        }
-                    }}
+                    onClick={() => setShowLeaveModal(true)}
                     className="absolute top-6 right-6 md:top-8 md:right-8 bg-red-500/20 hover:bg-red-500/40 backdrop-blur-md text-white px-5 py-2 md:px-6 md:py-3 rounded-full font-bold flex items-center gap-2 transition-all active:scale-95 z-20 shadow-lg text-sm md:text-base border border-red-500/30"
                 >
                     LEAVE
@@ -370,6 +360,24 @@ export default function Join() {
                     </button>
                 </div>
             </motion.div>
+            <ConfirmModal
+                isOpen={showLeaveModal}
+                onClose={() => setShowLeaveModal(false)}
+                onConfirm={async () => {
+                    if (channelRef.current) {
+                        await channelRef.current.send({
+                            type: 'broadcast',
+                            event: 'player_leave',
+                            payload: { id: playerId }
+                        });
+                    }
+                    resetGame();
+                    navigate('/');
+                }}
+                title="LEAVE GAME?"
+                message="Are you sure you want to exit this room and return to the home screen?"
+                confirmText="YES, LEAVE"
+            />
         </div>
     );
 }
