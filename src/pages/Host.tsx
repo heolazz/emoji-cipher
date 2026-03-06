@@ -126,8 +126,8 @@ export default function Host() {
 
     if (!isVerified) {
         return (
-            <div className="min-h-screen bg-[#6a5ae0] flex flex-col items-center justify-center p-6 font-sans">
-                <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="bg-white rounded-[3rem] p-12 shadow-2xl max-w-md w-full text-center border-b-8 border-gray-200">
+            <div className="min-h-screen bg-[#6a5ae0] bg-polka flex flex-col items-center justify-center p-6 font-sans">
+                <motion.div initial={{ y: 50, scale: 0.9, opacity: 0 }} animate={{ y: 0, scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 200, damping: 20 }} className="bg-white rounded-[3rem] p-12 shadow-2xl max-w-md w-full text-center border-b-8 border-gray-200">
                     <div className="bg-[#6a5ae0]/10 w-20 h-20 rounded-3xl flex items-center justify-center text-4xl mx-auto mb-8">🔐</div>
                     <h2 className="text-4xl font-black text-black mb-2 uppercase">HOST ACCESS</h2>
                     <p className="text-gray-400 font-bold uppercase tracking-widest text-xs mb-10">Enter your secret PIN</p>
@@ -160,7 +160,7 @@ export default function Host() {
         };
 
         return (
-            <div className="h-screen bg-[#6a5ae0] flex flex-col p-10 md:p-14 font-sans overflow-hidden">
+            <div className="h-screen bg-[#6a5ae0] bg-polka flex flex-col p-10 md:p-14 font-sans overflow-hidden">
                 {/* Top Header: Progress & Timer */}
                 <div className="flex justify-between items-center mb-8 shrink-0">
                     <div className="flex gap-2">
@@ -186,8 +186,9 @@ export default function Host() {
                                     </motion.span>
                                     <motion.h1
                                         key={currentQuiz.id}
-                                        initial={{ y: 20, opacity: 0 }}
-                                        animate={{ y: 0, opacity: 1 }}
+                                        initial={{ y: 40, scale: 0.5, opacity: 0 }}
+                                        animate={{ y: 0, scale: 1, opacity: 1 }}
+                                        transition={{ type: "spring", stiffness: 300, damping: 15 }}
                                         className="text-[6rem] md:text-[10rem] lg:text-[12rem] leading-none mb-6 md:mb-10 drop-shadow-xl filter saturate-150"
                                     >
                                         {currentQuiz.emojis}
@@ -199,8 +200,9 @@ export default function Host() {
                                 </>
                             ) : (
                                 <motion.div
-                                    initial={{ scale: 0.8, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
+                                    initial={{ scale: 0.5, opacity: 0, rotate: -10 }}
+                                    animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                                    transition={{ type: "spring", stiffness: 250, damping: 15 }}
                                     className="text-center"
                                 >
                                     <h3 className="text-[#6a5ae0] font-black text-2xl mb-4 tracking-widest uppercase">The Answer Is</h3>
@@ -245,8 +247,8 @@ export default function Host() {
     }
 
     return (
-        <div className="min-h-screen bg-[#6a5ae0] flex flex-col items-center justify-center p-8 font-sans">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white rounded-[3rem] p-12 shadow-2xl max-w-2xl w-full text-center border-b-8 border-gray-200">
+        <div className="min-h-screen bg-[#6a5ae0] bg-polka flex flex-col items-center justify-center p-8 font-sans">
+            <motion.div initial={{ scale: 0.8, y: 50, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 200, damping: 20 }} className="bg-white rounded-[3rem] p-12 shadow-2xl max-w-2xl w-full text-center border-b-8 border-gray-200">
                 <div className="mb-8">
                     <p className="text-[#6a5ae0] font-black tracking-widest mb-2">ROOM CODE</p>
                     <h1 className="text-[10rem] font-black text-black leading-none">{roomCode}</h1>
