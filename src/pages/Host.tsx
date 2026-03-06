@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 
 export default function Host() {
     const [pin, setPin] = useState('');
@@ -29,6 +30,12 @@ export default function Host() {
                 const isCorrect = validateAnswer(payload.answer);
                 if (isCorrect) {
                     updatePlayerScore(payload.id, 10);
+                    confetti({
+                        particleCount: 150,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: ['#000000', '#FFD700', '#FFFFFF']
+                    });
                 }
             })
             .subscribe();
@@ -38,7 +45,7 @@ export default function Host() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [roomCode, isVerified, addPlayer]);
+    }, [roomCode, isVerified, addPlayer, validateAnswer, updatePlayerScore]);
 
     const handleVerify = () => {
         if (pin === '123456') { // PIN Statis untuk MVP
