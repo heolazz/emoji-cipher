@@ -327,7 +327,14 @@ export default function Host() {
             <ConfirmModal
                 isOpen={showLeaveModal}
                 onClose={() => setShowLeaveModal(false)}
-                onConfirm={() => {
+                onConfirm={async () => {
+                    if (channelRef.current) {
+                        await channelRef.current.send({
+                            type: 'broadcast',
+                            event: 'room_closed',
+                            payload: { reason: 'HOST_LEFT' }
+                        });
+                    }
                     resetGame();
                     navigate('/');
                 }}

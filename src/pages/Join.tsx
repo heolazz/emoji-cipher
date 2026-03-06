@@ -77,6 +77,10 @@ export default function Join() {
                         score: myLeaderboardEntry.score
                     });
                 }
+            })
+            .on('broadcast', { event: 'room_closed' }, () => {
+                resetGame();
+                navigate('/');
             });
 
         channel.subscribe(async (subStatus) => {
@@ -302,6 +306,24 @@ export default function Join() {
                         </div>
                     )}
                 </motion.div>
+                <ConfirmModal
+                    isOpen={showLeaveModal}
+                    onClose={() => setShowLeaveModal(false)}
+                    onConfirm={async () => {
+                        if (channelRef.current) {
+                            await channelRef.current.send({
+                                type: 'broadcast',
+                                event: 'player_leave',
+                                payload: { id: playerId }
+                            });
+                        }
+                        resetGame();
+                        navigate('/');
+                    }}
+                    title="LEAVE GAME?"
+                    message="Are you sure you want to exit this room and return to the home screen?"
+                    confirmText="YES, LEAVE"
+                />
             </div>
         );
     }
@@ -309,7 +331,7 @@ export default function Join() {
     return (
         <div className="min-h-screen bg-[#6a5ae0] bg-polka flex flex-col items-center justify-center p-6 font-sans relative">
             <button
-                onClick={() => navigate('/')}
+                onClick={() => setShowLeaveModal(true)}
                 className="absolute top-6 left-6 md:top-8 md:left-8 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-5 py-2 md:px-6 md:py-3 rounded-full font-bold flex items-center gap-2 transition-all active:scale-95 z-20 shadow-lg text-sm md:text-base"
             >
                 BACK
