@@ -8,11 +8,11 @@ import confetti from 'canvas-confetti';
 export default function Host() {
     const navigate = useNavigate();
     const [pin, setPin] = useState('');
-    const [isVerified, setIsVerified] = useState(false);
     const {
         roomCode, setRole, players,
         status, startGame, questions, currentQuestionIndex,
-        nextQuestion, timeLeft, setTimeLeft, subStatus, revealAnswer
+        nextQuestion, timeLeft, setTimeLeft, subStatus, revealAnswer,
+        isVerified, setIsVerified
     } = useGameStore();
 
     const channelRef = useRef<any>(null);
@@ -109,8 +109,10 @@ export default function Host() {
         if (pin === '123456') {
             setIsVerified(true);
             setRole('HOST');
-            const code = Math.random().toString(36).substring(2, 6).toUpperCase();
-            useGameStore.getState().setRoomCode(code);
+            if (!roomCode) {
+                const code = Math.random().toString(36).substring(2, 6).toUpperCase();
+                useGameStore.getState().setRoomCode(code);
+            }
         } else {
             alert('PIN Salah!');
         }

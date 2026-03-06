@@ -6,20 +6,30 @@ import { motion } from 'framer-motion';
 
 export default function Join() {
     const navigate = useNavigate();
-    const [code, setCode] = useState('');
-    const [name, setName] = useState('');
-    const [isJoined, setIsJoined] = useState(false);
+    const {
+        roomCode, setRoomCode,
+        playerName, setPlayerName,
+        isJoined, setIsJoined,
+        setRole, status
+    } = useGameStore();
+
+    const [code, setCode] = useState(roomCode || '');
+    const [name, setName] = useState(playerName || '');
     const [answer, setAnswer] = useState('');
     const [hasAnswered, setHasAnswered] = useState(false);
     const [isLocked, setIsLocked] = useState(false);
     const [result, setResult] = useState<{ isCorrect: boolean, points: number, streak: number } | null>(null);
     const [finalData, setFinalData] = useState<{ rank: number, score: number } | null>(null);
     const [playerId] = useState(() => localStorage.getItem('emoji_player_id') || Math.random().toString(36).substring(2, 9));
-    const { setRoomCode, setRole, status } = useGameStore();
 
     const channelRef = useRef<any>(null);
 
     useEffect(() => {
+        // If we have persisted state, auto-rejoin
+        if (isJoined && roomCode && playerName) {
+            connectToRoom(roomCode, playerName);
+        }
+
         return () => {
             if (channelRef.current) {
                 supabase.removeChannel(channelRef.current);
@@ -27,64 +37,68 @@ export default function Join() {
         };
     }, []);
 
+    const connectToRoom = async (room: string, joinName: string) => {
+        if (channelRef.current) {
+            supabase.removeChannel(channelRef.current);
+        }
+
+        const channel = supabase.channel(`room_${room}`, {
+            config: { broadcast: { self: true } }
+        })
+            .on('broadcast', { event: 'game_start' }, () => {
+                useGameStore.getState().startGame();
+            })
+            .on('broadcast', { event: 'next_question' }, () => {
+                setHasAnswered(false);
+                setIsLocked(false);
+                setAnswer('');
+                setResult(null);
+            })
+            .on('broadcast', { event: 'timeout' }, () => {
+                setIsLocked(true);
+            })
+            .on('broadcast', { event: 'answer_result' }, ({ payload }) => {
+                if (payload.playerId === playerId) {
+                    setResult({
+                        isCorrect: payload.isCorrect,
+                        points: payload.points,
+                        streak: payload.streak
+                    });
+                }
+            })
+            .on('broadcast', { event: 'game_end' }, ({ payload }) => {
+                useGameStore.getState().endGame();
+                const myLeaderboardEntry = payload.leaderboard?.find((p: any) => p.id === playerId);
+                if (myLeaderboardEntry) {
+                    setFinalData({
+                        rank: myLeaderboardEntry.rank,
+                        score: myLeaderboardEntry.score
+                    });
+                }
+            });
+
+        channel.subscribe(async (subStatus) => {
+            if (subStatus === 'SUBSCRIBED') {
+                await channel.send({
+                    type: 'broadcast',
+                    event: 'player_join',
+                    payload: { id: playerId, name: joinName }
+                });
+                setIsJoined(true);
+            }
+        });
+
+        channelRef.current = channel;
+    };
+
     const handleJoin = async () => {
         if (code.length === 4 && name.trim()) {
             const room = code.toUpperCase();
             setRoomCode(room);
+            setPlayerName(name);
             setRole('PLAYER');
             localStorage.setItem('emoji_player_id', playerId);
-
-            if (channelRef.current) {
-                supabase.removeChannel(channelRef.current);
-            }
-
-            const channel = supabase.channel(`room_${room}`, {
-                config: { broadcast: { self: true } }
-            })
-                .on('broadcast', { event: 'game_start' }, () => {
-                    useGameStore.getState().startGame();
-                })
-                .on('broadcast', { event: 'next_question' }, () => {
-                    setHasAnswered(false);
-                    setIsLocked(false);
-                    setAnswer('');
-                    setResult(null);
-                })
-                .on('broadcast', { event: 'timeout' }, () => {
-                    setIsLocked(true);
-                })
-                .on('broadcast', { event: 'answer_result' }, ({ payload }) => {
-                    if (payload.playerId === playerId) {
-                        setResult({
-                            isCorrect: payload.isCorrect,
-                            points: payload.points,
-                            streak: payload.streak
-                        });
-                    }
-                })
-                .on('broadcast', { event: 'game_end' }, ({ payload }) => {
-                    useGameStore.getState().endGame();
-                    const myLeaderboardEntry = payload.leaderboard?.find((p: any) => p.id === playerId);
-                    if (myLeaderboardEntry) {
-                        setFinalData({
-                            rank: myLeaderboardEntry.rank,
-                            score: myLeaderboardEntry.score
-                        });
-                    }
-                });
-
-            channel.subscribe(async (status) => {
-                if (status === 'SUBSCRIBED') {
-                    await channel.send({
-                        type: 'broadcast',
-                        event: 'player_join',
-                        payload: { id: playerId, name }
-                    });
-                    setIsJoined(true);
-                }
-            });
-
-            channelRef.current = channel;
+            connectToRoom(room, name);
         } else {
             alert('Isi Nama dan Kode Room dengan benar!');
         }
