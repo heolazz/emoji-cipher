@@ -1,21 +1,45 @@
 import { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { supabase } from '../lib/supabase';
 
 export default function Join() {
     const [code, setCode] = useState('');
     const [name, setName] = useState('');
+    const [isJoined, setIsJoined] = useState(false);
     const { setRoomCode, setRole } = useGameStore();
 
-    const handleJoin = () => {
+    const handleJoin = async () => {
         if (code.length === 4 && name.trim()) {
-            setRoomCode(code.toUpperCase());
+            const room = code.toUpperCase();
+            setRoomCode(room);
             setRole('PLAYER');
-            // Logic sinkronisasi realtime akan ditambahkan di task selanjutnya
-            alert(`Welcome, ${name}! Joining room ${code.toUpperCase()}`);
+
+            const playerId = Math.random().toString(36).substring(7);
+            const channel = supabase.channel(`room_${room}`);
+
+            channel.subscribe(async (status) => {
+                if (status === 'SUBSCRIBED') {
+                    await channel.send({
+                        type: 'broadcast',
+                        event: 'player_join',
+                        payload: { id: playerId, name }
+                    });
+                    setIsJoined(true);
+                }
+            });
         } else {
             alert('Isi Nama dan Kode Room dengan benar!');
         }
     };
+
+    if (isJoined) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#fdfbf7]">
+                <h2 className="text-3xl font-serif font-bold mb-4 text-black text-center">Connected!</h2>
+                <p className="text-gray-500 text-center">Look at the iPad screen. Game will start soon...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#fdfbf7]">

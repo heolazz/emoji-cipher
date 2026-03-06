@@ -22,6 +22,7 @@ interface GameState {
     setRole: (role: 'HOST' | 'PLAYER') => void
     addPlayer: (player: Player) => void
     updatePlayerScore: (playerId: string, points: number) => void
+    setPlayers: (players: Record<string, Player>) => void
 }
 
 export const useGameStore = create<GameState>((set) => ({
@@ -45,5 +46,6 @@ export const useGameStore = create<GameState>((set) => ({
                 lastAnswerCorrect: true
             }
         }
-    }))
+    })),
+    setPlayers: (players) => set({ players }),
 }))
